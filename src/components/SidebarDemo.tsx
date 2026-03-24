@@ -173,7 +173,12 @@ const TabContent = ({ activeTab }: { activeTab: TabId }) => {
 
   return (
     <div className="flex flex-1 min-h-0">
-      <div className="p-3 md:p-8 lg:p-10 border-l border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 flex flex-col gap-3 md:gap-4 flex-1 w-full h-full">
+      <div
+        className={cn(
+          "border-l border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 flex flex-col flex-1 w-full h-full",
+          activeTab === "backtesting" ? "p-0" : "p-3 md:p-8 lg:p-10 gap-3 md:gap-4"
+        )}
+      >
         <AnimatePresence mode="wait">
           <motion.div
             key={activeTab}
