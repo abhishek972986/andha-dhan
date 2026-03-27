@@ -15,6 +15,18 @@ interface Model {
   badge?: string
 }
 
+interface ChatSelectorOption {
+  label: string
+  value: string
+}
+
+interface ChatSelector {
+  id: string
+  value: string
+  options: ChatSelectorOption[]
+  onChange: (value: string) => void
+}
+
 const models: Model[] = [
   { id: 'sonnet-4.5', name: 'Sonnet 4.5', description: 'Fast & intelligent', icon: <Zap className="size-4 text-blue-400" />, badge: 'Default' },
   { id: 'opus-4.5', name: 'Opus 4.5', description: 'Most capable', icon: <Sparkles className="size-4 text-indigo-300" />, badge: 'Pro' },
@@ -88,11 +100,61 @@ function ModelSelector({ selectedModel = 'sonnet-4.5', onModelChange }: {
   )
 }
 
-function ChatInput({ onSend, placeholder = 'What do you want to build?', isLoading = false, actionLabel = 'Build now' }: {
+function PillSelector({ value, options, onChange }: {
+  value: string
+  options: ChatSelectorOption[]
+  onChange: (value: string) => void
+}) {
+  const [isOpen, setIsOpen] = useState(false)
+
+  const selected = options.find((option) => option.value === value) || options[0]
+
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-medium transition-all duration-200 text-[#8a8a8f] hover:text-white hover:bg-white/5 active:scale-95"
+      >
+        <span>{selected?.label ?? value}</span>
+        <ChevronDown className={`size-3.5 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+      </button>
+
+      {isOpen && (
+        <>
+          <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
+          <div className="absolute bottom-full right-0 mb-2 z-50 min-w-[180px] bg-[#1a1a1e]/95 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl shadow-black/50 overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-200">
+            <div className="p-1.5">
+              {options.map((option) => (
+                <button
+                  key={option.value}
+                  onClick={() => {
+                    onChange(option.value)
+                    setIsOpen(false)
+                  }}
+                  className={`w-full flex items-center justify-between gap-3 px-2.5 py-2 rounded-lg text-left transition-all duration-150 ${
+                    selected?.value === option.value
+                      ? 'bg-white/10 text-white'
+                      : 'text-[#a0a0a5] hover:bg-white/5 hover:text-white'
+                  }`}
+                >
+                  <span className="text-sm font-medium">{option.label}</span>
+                  {selected?.value === option.value && <Check className="size-4 text-blue-400 shrink-0" />}
+                </button>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
+
+function ChatInput({ onSend, placeholder = 'What do you want to build?', isLoading = false, actionLabel = 'Build now', selectors = [] }: {
   onSend?: (message: string) => void
   placeholder?: string
   isLoading?: boolean
   actionLabel?: string
+  selectors?: ChatSelector[]
 }) {
   const [message, setMessage] = useState('')
   const [showAttachMenu, setShowAttachMenu] = useState(false)
@@ -166,12 +228,21 @@ function ChatInput({ onSend, placeholder = 'What do you want to build?', isLoadi
                 </>
               )}
             </div>
-            <ModelSelector />
+            {selectors.length === 0 && <ModelSelector />}
           </div>
 
           <div className="flex-1" />
 
           <div className="flex items-center gap-2">
+            {selectors.map((selector) => (
+              <PillSelector
+                key={selector.id}
+                value={selector.value}
+                options={selector.options}
+                onChange={selector.onChange}
+              />
+            ))}
+
             <button className="flex items-center gap-1.5 px-3 py-2 rounded-full text-xs font-medium text-[#6a6a6f] hover:text-white hover:bg-white/5 transition-all duration-200">
               <Lightbulb className="size-4" />
               <span className="hidden sm:inline">Plan</span>
@@ -273,6 +344,7 @@ interface BoltChatProps {
   onImport?: (source: string) => void
   isLoading?: boolean
   ctaLabel?: string
+  selectors?: ChatSelector[]
   topControls?: React.ReactNode
   messagePanel?: React.ReactNode
 }
@@ -289,6 +361,7 @@ export function BoltStyleChat({
   onImport,
   isLoading = false,
   ctaLabel = 'Build now',
+  selectors = [],
   topControls,
   messagePanel
 }: BoltChatProps) {
@@ -324,7 +397,13 @@ export function BoltStyleChat({
         )}
 
         <div className="w-full max-w-[760px] mb-6 sm:mb-8 mt-2">
-          <ChatInput placeholder={placeholder} onSend={onSend} isLoading={isLoading} actionLabel={ctaLabel} />
+          <ChatInput
+            placeholder={placeholder}
+            onSend={onSend}
+            isLoading={isLoading}
+            actionLabel={ctaLabel}
+            selectors={selectors}
+          />
         </div>
 
         <ImportButtons onImport={onImport} />

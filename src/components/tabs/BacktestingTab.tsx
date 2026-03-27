@@ -17,6 +17,10 @@ interface BacktestRequest {
   strategy: string;
 }
 
+const CURRENCIES = ["EUR/USD", "GBP/USD", "USD/JPY", "Gold", "Silver", "Bitcoin", "Ethereum", "SPY", "QQQ"];
+const DURATIONS = ["1 week", "1 month", "3 months", "6 months", "1 year", "2 years", "5 years"];
+const TIMINGS = ["1m", "5m", "15m", "30m", "1h", "4h", "1d", "1w"];
+
 const BACKTEST_MESSAGES_STORAGE_KEY = "backtesting-messages-v1";
 const DEFAULT_ASSISTANT_MESSAGE: Message = {
   id: "1",
@@ -64,10 +68,9 @@ export function BacktestingTab() {
     window.localStorage.setItem(BACKTEST_MESSAGES_STORAGE_KEY, JSON.stringify(messages));
   }, [messages]);
 
-  // Fixed defaults for this UI variant.
-  const selectedCurrency = "EUR/USD";
-  const selectedDuration = "1 year";
-  const selectedTiming = "1h";
+  const [selectedCurrency, setSelectedCurrency] = useState("EUR/USD");
+  const [selectedDuration, setSelectedDuration] = useState("1 year");
+  const [selectedTiming, setSelectedTiming] = useState("1h");
 
   const handleSendMessage = async (message: string) => {
     if (!message.trim()) return;
@@ -156,6 +159,26 @@ export function BacktestingTab() {
       announcementText="Introducing Backtesting v2.0"
       placeholder="Describe your strategy or timeframe..."
       ctaLabel="Backtest now"
+      selectors={[
+        {
+          id: "asset",
+          value: selectedCurrency,
+          options: CURRENCIES.map((item) => ({ label: item, value: item })),
+          onChange: setSelectedCurrency,
+        },
+        {
+          id: "duration",
+          value: selectedDuration,
+          options: DURATIONS.map((item) => ({ label: item, value: item })),
+          onChange: setSelectedDuration,
+        },
+        {
+          id: "timeframe",
+          value: selectedTiming,
+          options: TIMINGS.map((item) => ({ label: item, value: item })),
+          onChange: setSelectedTiming,
+        },
+      ]}
       onSend={handleSendMessage}
       isLoading={isLoading}
     />
