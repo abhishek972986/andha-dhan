@@ -1,5 +1,2 @@
-import { SidebarDemo } from "@/components/SidebarDemo";
-
-export default function Home() {
-  return <SidebarDemo />;
-}
+export { metadata } from './landing/page';
+export { default } from './landing/page';
